@@ -19,7 +19,7 @@ use English qw(-no_match_vars);
 use Readonly;
 
 our $DEBUG    = 0;
-our $VERSION  = do { my @r = (q$Revision: 1.67 $ =~ /\d+/smxg); sprintf '%d.'.'%03d' x $#r, @r };
+our $VERSION  = '2.01';
 Readonly::Scalar our $TIMEOUT         => 5;
 Readonly::Scalar our $REG_TIMEOUT     => 15;
 Readonly::Scalar our $LINKRE          => qr{<link\s+href="([^"]+)"[^>]*?>([^<]*)</link>|<link\s+href="([^"]+)"[^>]*?/>}smix;
