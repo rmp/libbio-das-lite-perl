@@ -20,28 +20,21 @@ use Readonly;
 
 our $DEBUG    = 0;
 our $VERSION  = do { my @r = (q$Revision: 1.67 $ =~ /\d+/smxg); sprintf '%d.'.'%03d' x $#r, @r };
-Readonly::Scalar our $TIMEOUT  => 5;
-Readonly::Scalar our $REG_TIMEOUT => 15;
-Readonly::Scalar our $LINKRE   => qr{<link\s+href="([^"]+)"[^>]*?>([^<]*)</link>|<link\s+href="([^"]+)"[^>]*?/>}smix;
-Readonly::Scalar our $NOTERE   => qr{<note[^>]*>([^<]*)</note>}smix;
+Readonly::Scalar our $TIMEOUT         => 5;
+Readonly::Scalar our $REG_TIMEOUT     => 15;
+Readonly::Scalar our $LINKRE          => qr{<link\s+href="([^"]+)"[^>]*?>([^<]*)</link>|<link\s+href="([^"]+)"[^>]*?/>}smix;
+Readonly::Scalar our $NOTERE          => qr{<note[^>]*>([^<]*)</note>}smix;
 Readonly::Scalar our $DAS_STATUS_TEXT => {
-  200 => '200 OK',
-  400 => '400 Bad command (command not recognized)',
-  401 => '401 Bad data source (data source unknown)',
-  402 => '402 Bad command arguments (arguments invalid)',
-  403 => '403 Bad reference object',
-  404 => '404 Requested object unknown',
-  405 => '405 Coordinate error',
-  500 => '500 Server error',
-  501 => '501 Unimplemented feature',
-};
-
-BEGIN {
-  if(!LWP::Protocol->can('parse_head')) {
-    require LWP::Protocol;
-    *LWP::Protocol::parse_head = sub { shift->_elem('parse_head', @_); };
-  }
-}
+					  200 => '200 OK',
+					  400 => '400 Bad command (command not recognized)',
+					  401 => '401 Bad data source (data source unknown)',
+					  402 => '402 Bad command arguments (arguments invalid)',
+					  403 => '403 Bad reference object',
+					  404 => '404 Requested object unknown',
+					  405 => '405 Coordinate error',
+					  500 => '500 Server error',
+					  501 => '501 Unimplemented feature',
+					 };
 
 #########
 # $ATTR contains information about document structure - tags, attributes and subparts
@@ -1362,7 +1355,7 @@ Constructs an arrayref of DAS requests including parameters for each call
 
 =head2 build_requests
 
-Constructs the LWP::P::UA callbacks
+Constructs the WWW::Curl callbacks
 
 =head2 postprocess
 
@@ -1374,12 +1367,27 @@ This module is an implementation of a client for the DAS protocol (XML over HTTP
 
 =head1 DEPENDENCIES
 
-  LWP::Parallel::UserAgent
-  HTTP::Request
-  HTTP::Headers
-  SOAP::Lite
-  Carp
-  English
+=over
+
+=item strict
+
+=item warnings
+
+=item WWW::Curl::Simple
+
+=item HTTP::Request
+
+=item HTTP::Headers
+
+=item SOAP::Lite
+
+=item Carp
+
+=item English
+
+=item Readonly
+
+=back
 
 =head1 DIAGNOSTICS
 
@@ -1390,11 +1398,7 @@ This module is an implementation of a client for the DAS protocol (XML over HTTP
 
 =head1 INCOMPATIBILITIES
 
-Versions of LWP from 5.816 onwards (at time of writing upto 5.820) break LWP::Parallel and
-therefore Bio::Das::Lite. It is recommended to use version 5.814 of LWP.
-
 =head1 BUGS AND LIMITATIONS
-
 
 =head1 SEE ALSO
 
