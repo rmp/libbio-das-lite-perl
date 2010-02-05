@@ -1,5 +1,9 @@
 Revision history for Perl extension Bio::Das::Lite.
 
+2.01 Bugfix for authenticating proxies.
+     No longer appends ? to DAS request URIs without query params.
+     Supports links with no descriptions.
+
 2.00 Switched to WWW::Curl::Simple (from LWP::Parallel::UserAgent)
 
 1.61 Minor: Fixed prereq (for CPANTS prereq_matches_use)
