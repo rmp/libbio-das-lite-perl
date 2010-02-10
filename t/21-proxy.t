@@ -31,59 +31,59 @@ if ($child_pid && $port) {
   my $dl = Bio::Das::Lite->new($dsn);
   $dl->features('1:1,2');
   my $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
-  like($status, qr/200/smx, 'direct connection');
+  unlike($status, qr/PROXY/smx, 'direct connection');
 
   $dl = Bio::Das::Lite->new({dsn => $dsn, http_proxy => "http://127.0.0.1:$port"});
   $dl->features('1:1,2');
   $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
-  like($status, qr/200/smx, 'basic proxy (constructor)');
+  is($status, '200 (OK) PROXY', 'basic proxy (constructor)');
 
   $dl = Bio::Das::Lite->new($dsn);
   $dl->http_proxy("http://127.0.0.1:$port");
   $dl->features('1:1,2');
   $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
-  like($status, qr/200/smx, 'basic proxy (method)');
+  is($status, '200 (OK) PROXY', 'basic proxy (method)');
 
   $dl = Bio::Das::Lite->new($dsn);
   $dl->http_proxy("http://user:pass\@127.0.0.1:$port");
   $dl->features('1:1,2');
   $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
-  like($status, qr/200/smx, 'authenticated proxy (method)');
+  is($status, '200 (OK) PROXY user:pass', 'authenticated proxy (method)');
 
   $ENV{http_proxy} = "http://127.0.0.1:$port";
   $dl = Bio::Das::Lite->new($dsn);
   $dl->features('1:1,2');
   $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
-  like($status, qr/200/smx, 'basic proxy (environment)');
+  is($status, '200 (OK) PROXY', 'basic proxy (environment)');
 
   $dl = Bio::Das::Lite->new({dsn=>$dsn,no_proxy=>'ensembl.org'});
   $dl->features('1:1,2');
   $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
-  like($status, qr/200/smx, 'no-proxy (constructor) positive match');
+  unlike($status, qr/PROXY/smx, 'no-proxy (constructor) positive match');
 
   $dl = Bio::Das::Lite->new($dsn);
   $dl->no_proxy('ensembl.org', 'another.com');
   $dl->features('1:1,2');
   $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
-  like($status, qr/200/smx, 'no-proxy (method list) positive match');
+  unlike($status, qr/PROXY/smx, 'no-proxy (method list) positive match');
 
   $dl = Bio::Das::Lite->new($dsn);
   $dl->no_proxy('wibble.com', 'another.com');
   $dl->features('1:1,2');
   $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
-  like($status, qr/200/smx, 'no-proxy (method list) negative match');
+  is($status, '200 (OK) PROXY', 'no-proxy (method list) negative match');
 
   $dl = Bio::Das::Lite->new($dsn);
   $dl->no_proxy(['ensembl.org', 'another.com']);
   $dl->features('1:1,2');
   $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
-  like($status, qr/200/smx, 'no-proxy (method listref) positive match');
+  unlike($status, qr/PROXY/smx, 'no-proxy (method listref) positive match');
 
   $ENV{no_proxy} = 'ensembl.org, another.com';
   $dl = Bio::Das::Lite->new($dsn);
   $dl->features('1:1,2');
   $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
-  like($status, qr/200/smx, 'no-proxy (environment) positive match');
+  unlike($status, qr/PROXY/smx, 'no-proxy (environment) positive match');
 
 } else {
   fail("run test proxy server");
@@ -146,7 +146,7 @@ sub fork_server {
         # Errors appear as HTTP::Response objects (via filter)
         if ($req_or_resp->isa(q[HTTP::Request])) {
           my $auth = $req_or_resp->proxy_authorization_basic;
-          $req_or_resp = HTTP::Response->new(200, $auth ? $auth : 'PROXY'); # OK
+          $req_or_resp = HTTP::Response->new(200, $auth ? 'PROXY ' . $auth : 'PROXY'); # OK
           $req_or_resp->content('FAKE CONTENT');
         }
         $heap->{client}->put($req_or_resp);
