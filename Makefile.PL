@@ -21,9 +21,8 @@ WriteMakefile(
 	      'VERSION_FROM'  => 'lib/Bio/Das/Lite.pm',
 	      'DISTNAME'      => 'Bio-Das-Lite',
 	      'PREREQ_PM'     => {
-				  'WWW::Curl::Simple' => '0.100181',
-				  'HTTP::Request'     => '1.4',
-				  'HTTP::Headers'     => '1.64',
+                                  'WWW::Curl'         => '4.11',
+				  'HTTP::Response'    => '1.49',
 				  'SOAP::Lite'        => '0.69',
 				  'English'           => '1.01',
 				  'Carp'              => '1.02',

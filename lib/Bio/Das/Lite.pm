@@ -10,9 +10,9 @@
 package Bio::Das::Lite;
 use strict;
 use warnings;
-use WWW::Curl::Simple;
-use HTTP::Request;
-use HTTP::Headers;
+use WWW::Curl::Multi;
+use WWW::Curl::Easy; # CURLOPT imports
+use HTTP::Response;
 use SOAP::Lite;
 use Carp;
 use English qw(-no_match_vars);
@@ -804,8 +804,6 @@ sub postprocess {
 sub _fetch {
   my ($self, $url_ref, $headers) = @_;
 
-  my $ua = WWW::Curl::Simple->new;
-
   $self->{'statuscodes'} = {};
   if(!$headers) {
     $headers = {};
@@ -815,47 +813,112 @@ sub _fetch {
     $headers->{'X-Forwarded-For'} ||= $ENV{'HTTP_X_FORWARDED_FOR'};
   }
 
+  # Convert header pairs to strings
+  my @headers;
+  for my $h (keys %{ $headers }) {
+    push @headers, "$h: " . $headers->{$h};
+  }
+
+  # We will now issue the actual requests. Due to insufficient support for error
+  # handling and proxies, we can't use WWW::Curl::Simple. So we generate a
+  # WWW::Curl::Easy object here, and register it with WWW::Curl::Multi.
+
+  my $curlm = WWW::Curl::Multi->new();
+  my %reqs;
+  my $i = 0;
+
+  # First initiate the requests
   for my $url (keys %{$url_ref}) {
     if(ref $url_ref->{$url} ne 'CODE') {
       next;
     }
-    $DEBUG and print {*STDERR} qq(Building HTTP::Request for $url [timeout=$self->{'timeout'}] via $url_ref->{$url}\n);
+    $DEBUG and print {*STDERR} qq(Building WWW::Curl::Easy for $url [timeout=$self->{'timeout'}] via $url_ref->{$url}\n);
 
-    my $http_headers = HTTP::Headers->new(%{$headers});
-    $http_headers->user_agent($self->user_agent());
+    $i++;
+    my $curl = WWW::Curl::Easy->new();
 
-    if($self->proxy_user() && $self->proxy_pass()) {
-      $http_headers->proxy_authorization_basic($self->proxy_user(), $self->proxy_pass());
+    $curl->setopt( CURLOPT_NOPROGRESS, 1 );
+    $curl->setopt( CURLOPT_USERAGENT, $self->user_agent );
+    $curl->setopt( CURLOPT_URL, $url );
+
+    if (scalar(@headers)) {
+        $curl->setopt( CURLOPT_HTTPHEADER, \@headers );
     }
+    my ($body_ref, $head_ref);
+    open (my $fileb, ">", \$body_ref);
+    $curl->setopt( CURLOPT_WRITEDATA, $fileb );
 
-    $ua->register(HTTP::Request->new('GET', $url, $http_headers));
+    open (my $fileh, ">", \$head_ref);
+    $curl->setopt( CURLOPT_WRITEHEADER, $fileh );
+
+    # we set this so we have the ref later on
+    $curl->setopt( CURLOPT_PRIVATE, $i );
+    $curl->setopt( CURLOPT_TIMEOUT, $self->timeout || $TIMEOUT );
+    #$curl->setopt( CURLOPT_CONNECTTIMEOUT, $self->connection_timeout || 2 );
+    $curl->setopt( CURLOPT_PROXY, $self->http_proxy );
+    $curl->setopt( CURLOPT_PROXYUSERNAME, $self->proxy_user );
+    $curl->setopt( CURLOPT_PROXYPASSWORD, $self->proxy_pass );
+    $curl->setopt( CURLOPT_NOPROXY, join ',', @{ $self->no_proxy } );
+
+    $curlm->add_handle($curl);
+
+    $reqs{$i} = {
+                 'uri'  => $url,
+                 'easy' => $curl,
+                 'head' => \$head_ref,
+                 'body' => \$body_ref,
+                };
   }
 
-  my @res = $ua->perform;
   $DEBUG and print {*STDERR} qq(Requests submitted. Waiting for content\n);
-  for my $req (@res) {
-    my $res = $req->response;
-    my $uri = $res->request->uri;
-    my $msg;
-    # Prefer X-DAS-Status
-    if (my $das_status = $res->header('X-DAS-Status')) {
-      $msg = $self->{statuscodes}->{$uri} = $DAS_STATUS_TEXT->{$das_status};
-      # just in case we get a status we don't understand:
-      $msg ||= $das_status . q( ) . ($res->message || 'Unknown status');
-    }
-    # Fall back to HTTP status
-    else {
-      $msg  = $res->status_line;
-      # workaround for bug in HTTP::Response parse method:
-      $msg  =~ s/\r$//smx;
-    }
 
-    $self->{statuscodes}->{$uri} = $msg;
-    $url_ref->{$uri}->($res->content);
+  # Now check for results as they come back
+  while ($i) {
+    my $active_transfers = $curlm->perform;
+    if ($active_transfers != $i) {
+      while (my ($id,$retcode) = $curlm->info_read) {
+        if ($id) {
+          $i--;
+          my $req  = $reqs{$id};
+          my $uri  = $req->{'uri'};
+          my $head = ${ $req->{'head'} } || q();
+          my $body = ${ $req->{'body'} } || q();
+
+          # We got a response from the server:
+          if ($retcode == 0) {
+            my $res = HTTP::Response->parse( $head . "\n" . $body );
+            my $msg;
+            # Prefer X-DAS-Status
+            my ($das_status) = ($res->header('X-DAS-Status') || q()) =~ m/^(\d+)/smx;
+            if ($das_status) {
+              $msg = $self->{statuscodes}->{$uri} = $DAS_STATUS_TEXT->{$das_status};
+              # just in case we get a status we don't understand:
+              $msg ||= $das_status . q( ) . ($res->message || 'Unknown status');
+            }
+            # Fall back to HTTP status
+            else {
+              $msg  = $res->status_line;
+              # workaround for bug in HTTP::Response parse method:
+              $msg  =~ s/\r//gsmx;
+            }
+
+            $self->{statuscodes}->{$uri} = $msg;
+            $url_ref->{$uri}->($res->content); # run the content handling code
+          }
+          # A connection error, timeout etc (NOT an HTTP status):
+          else {
+            $self->{statuscodes}->{$uri} = '500 ' . $req->{'easy'}->strerror($retcode);
+          }
+
+          delete($reqs{$id}); # put out of scope to free memory
+        }
+      }
+    }
   }
 
   return;
 }
+
 
 sub statuscodes {
   my ($self, $url)         = @_;
@@ -1373,11 +1436,9 @@ This module is an implementation of a client for the DAS protocol (XML over HTTP
 
 =item warnings
 
-=item WWW::Curl::Simple
+=item WWW::Curl
 
-=item HTTP::Request
-
-=item HTTP::Headers
+=item HTTP::Response
 
 =item SOAP::Lite
 
