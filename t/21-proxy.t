@@ -1,7 +1,6 @@
 use strict;
 use warnings;
 
-use WWW::Curl::Simple;
 use Bio::Das::Lite;
 use Test::More;
 use English qw(-no_match_vars);
@@ -9,12 +8,13 @@ use English qw(-no_match_vars);
 BEGIN {
   eval {
     require POE;
+    require WWW::Curl::Simple;
     POE->import(qw(Component::Server::TCP Filter::HTTPD));
     require HTTP::Response;
   };
 
   if ($EVAL_ERROR) {
-    plan skip_all => 'Proxy testing requires POE';
+    plan skip_all => 'Proxy testing requires POE and WWW::Curl::Simple';
   } else {
     plan tests => 11;
   }
