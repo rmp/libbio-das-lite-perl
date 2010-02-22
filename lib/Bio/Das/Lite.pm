@@ -1149,7 +1149,18 @@ sub _filter_category {
   my ($self, $src, $match) = @_;
   for my $scoord (@{$src->{'coordinateSystem'}}) {
     for my $m (@{$match}) {
-       return 1 if($scoord->{'category'} eq $m);
+      if ($m =~ m/,/mx) {
+        # regex REQUIRES "authority,type", and handles optional version (with proper underscore handling) and species
+        my ($auth, $ver, $cat, $org) = $m =~ m/^ (.+?) (?:_([^_,]+))? ,([^,]+) (?:,(.+))? /mx;
+        if (lc $cat eq lc $scoord->{'category'} &&
+            $auth eq $scoord->{'name'} &&
+            (!$ver || lc $ver eq lc $scoord->{'version'}) &&
+            (!$org || lc $org eq lc $scoord->{'organismName'})) {
+          return 1;
+        }
+      } else {
+        return 1 if(lc $scoord->{'category'} eq lc $m);
+      }
     }
   }
   return 0;
@@ -1169,7 +1180,7 @@ Bio::Das::Lite - Perl extension for the DAS (HTTP+XML) Protocol (http://biodas.o
 =head1 SYNOPSIS
 
   use Bio::Das::Lite;
-  my $bdl     = Bio::Das::Lite->new_from_registry({'category' => 'Chromosome'});
+  my $bdl     = Bio::Das::Lite->new_from_registry({'category' => 'GRCh_37,Chromosome,Homo sapiens'});
   my $results = $bdl->features('22');
 
 
@@ -1213,9 +1224,16 @@ Bio::Das::Lite - Perl extension for the DAS (HTTP+XML) Protocol (http://biodas.o
                  category                     (optional arrayref of categories)
 
 
-For a complete list of capabilities and categories, see:
+  For a complete list of capabilities and categories, see:
 
     http://das.sanger.ac.uk/registry/
+
+  The category can optionally be a full coordinate system name,
+  allowing further restriction by authority, version and species.
+  For example:
+      'Protein Sequence' OR
+      'UniProt,Protein Sequence' OR
+      'GRCh_37,Chromosome,Homo sapiens'
 
 =head2 http_proxy : Get/Set http_proxy
 
