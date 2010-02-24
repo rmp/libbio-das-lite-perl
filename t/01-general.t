@@ -48,7 +48,7 @@ our $VERSION = do { my @r = (q$Revision: 1.42 $ =~ /\d+/mxg); sprintf '%d.'.'%03
 
   my $key      = (keys %{$f_by_id})[0];
 
-  ok(scalar @{$f_by_id->{$key}} <= 1,      'feature-by=id returned one or no elements');
+  ok(ref($f_by_id->{$key}) eq 'ARRAY' && scalar @{$f_by_id->{$key}} == 1, 'feature-by-id returned one element');
   ok(ref($f_by_id->{$key}->[0]) eq 'HASH', 'feature-by-id element was a hash');
 }
 

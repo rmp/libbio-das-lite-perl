@@ -19,7 +19,7 @@ use English qw(-no_match_vars);
 use Readonly;
 
 our $DEBUG    = 0;
-our $VERSION  = '2.01';
+our $VERSION  = '2.02';
 Readonly::Scalar our $TIMEOUT         => 5;
 Readonly::Scalar our $REG_TIMEOUT     => 15;
 Readonly::Scalar our $LINKRE          => qr{<link\s+href="([^"]+)"[^>]*?>([^<]*)</link>|<link\s+href="([^"]+)"[^>]*?/>}smix;
@@ -435,11 +435,13 @@ sub caching {
 
 sub max_hosts {
   my ($self, $val) = @_;
+  carp 'WARNING: max_hosts method is decprecated and has no effect';
   return $self->_get_set('_max_hosts', $val);
 }
 
 sub max_req {
   my ($self, $val) = @_;
+  carp 'WARNING: max_req method is decprecated and has no effect';
   return $self->_get_set('_max_req', $val);
 }
 
@@ -841,14 +843,14 @@ sub _fetch {
     $curl->setopt( CURLOPT_USERAGENT, $self->user_agent );
     $curl->setopt( CURLOPT_URL, $url );
 
-    if (scalar(@headers)) {
+    if (scalar @headers) {
         $curl->setopt( CURLOPT_HTTPHEADER, \@headers );
     }
     my ($body_ref, $head_ref);
-    open (my $fileb, ">", \$body_ref);
+    CORE::open my $fileb, '>', \$body_ref || croak 'Error opening data handle';
     $curl->setopt( CURLOPT_WRITEDATA, $fileb );
 
-    open (my $fileh, ">", \$head_ref);
+    CORE::open my $fileh, '>', \$head_ref || croak 'Error opening header handle';
     $curl->setopt( CURLOPT_WRITEHEADER, $fileh );
 
     # we set this so we have the ref later on
@@ -858,7 +860,7 @@ sub _fetch {
     $curl->setopt( CURLOPT_PROXY, $self->http_proxy );
     $curl->setopt( CURLOPT_PROXYUSERNAME, $self->proxy_user );
     $curl->setopt( CURLOPT_PROXYPASSWORD, $self->proxy_pass );
-    $curl->setopt( CURLOPT_NOPROXY, join ',', @{ $self->no_proxy } );
+    $curl->setopt( CURLOPT_NOPROXY, join q(,), @{ $self->no_proxy } );
 
     $curlm->add_handle($curl);
 
@@ -872,53 +874,61 @@ sub _fetch {
 
   $DEBUG and print {*STDERR} qq(Requests submitted. Waiting for content\n);
 
+  $self->_receive($url_ref, $curlm, \%reqs);
+
+  return;
+}
+
+sub _receive {
+  my ($self, $url_ref, $curlm, $reqs) = @_;
+
   # Now check for results as they come back
+  my $i = scalar keys %{ $reqs };
   while ($i) {
     my $active_transfers = $curlm->perform;
     if ($active_transfers != $i) {
       while (my ($id,$retcode) = $curlm->info_read) {
-        if ($id) {
-          $i--;
-          my $req  = $reqs{$id};
-          my $uri  = $req->{'uri'};
-          my $head = ${ $req->{'head'} } || q();
-          my $body = ${ $req->{'body'} } || q();
+        $id || next;
 
-          # We got a response from the server:
-          if ($retcode == 0) {
-            my $res = HTTP::Response->parse( $head . "\n" . $body );
-            my $msg;
-            # Prefer X-DAS-Status
-            my ($das_status) = ($res->header('X-DAS-Status') || q()) =~ m/^(\d+)/smx;
-            if ($das_status) {
-              $msg = $self->{statuscodes}->{$uri} = $DAS_STATUS_TEXT->{$das_status};
-              # just in case we get a status we don't understand:
-              $msg ||= $das_status . q( ) . ($res->message || 'Unknown status');
-            }
-            # Fall back to HTTP status
-            else {
-              $msg  = $res->status_line;
-              # workaround for bug in HTTP::Response parse method:
-              $msg  =~ s/\r//gsmx;
-            }
+        $i--;
+        my $req  = $reqs->{$id};
+        my $uri  = $req->{'uri'};
+        my $head = ${ $req->{'head'} } || q();
+        my $body = ${ $req->{'body'} } || q();
 
-            $self->{statuscodes}->{$uri} = $msg;
-            $url_ref->{$uri}->($res->content); # run the content handling code
+        # We got a response from the server:
+        if ($retcode == 0) {
+          my $res = HTTP::Response->parse( $head . "\n" . $body );
+          my $msg;
+          # Prefer X-DAS-Status
+          my ($das_status) = ($res->header('X-DAS-Status') || q()) =~ m/^(\d+)/smx;
+          if ($das_status) {
+            $msg = $self->{statuscodes}->{$uri} = $DAS_STATUS_TEXT->{$das_status};
+            # just in case we get a status we don't understand:
+            $msg ||= $das_status . q( ) . ($res->message || 'Unknown status');
           }
-          # A connection error, timeout etc (NOT an HTTP status):
+          # Fall back to HTTP status
           else {
-            $self->{statuscodes}->{$uri} = '500 ' . $req->{'easy'}->strerror($retcode);
+            $msg  = $res->status_line;
+            # workaround for bug in HTTP::Response parse method:
+            $msg  =~ s/\r//gsmx;
           }
 
-          delete($reqs{$id}); # put out of scope to free memory
+          $self->{statuscodes}->{$uri} = $msg;
+          $url_ref->{$uri}->($res->content); # run the content handling code
         }
+        # A connection error, timeout etc (NOT an HTTP status):
+        else {
+          $self->{statuscodes}->{$uri} = '500 ' . $req->{'easy'}->strerror($retcode);
+        }
+
+        delete($reqs->{$id}); # put out of scope to free memory
       }
     }
   }
 
   return;
 }
-
 
 sub statuscodes {
   my ($self, $url)         = @_;
@@ -1149,9 +1159,9 @@ sub _filter_category {
   my ($self, $src, $match) = @_;
   for my $scoord (@{$src->{'coordinateSystem'}}) {
     for my $m (@{$match}) {
-      if ($m =~ m/,/mx) {
+      if ($m =~ m/,/mxs) {
         # regex REQUIRES "authority,type", and handles optional version (with proper underscore handling) and species
-        my ($auth, $ver, $cat, $org) = $m =~ m/^ (.+?) (?:_([^_,]+))? ,([^,]+) (?:,(.+))? /mx;
+        my ($auth, $ver, $cat, $org) = $m =~ m/^ (.+?) (?:_([^_,]+))? ,([^,]+) (?:,(.+))? /mxs;
         if (lc $cat eq lc $scoord->{'category'} &&
             $auth eq $scoord->{'name'} &&
             (!$ver || lc $ver eq lc $scoord->{'version'}) &&
@@ -1404,10 +1414,14 @@ Bio::Das::Lite - Perl extension for the DAS (HTTP+XML) Protocol (http://biodas.o
 
 =head2 max_hosts set number of running concurrent host connections
 
+  THIS METHOD IS NOW DEPRECATED AND HAS NO EFFECT
+
   $das->max_hosts(7);
   print $das->max_hosts();
 
 =head2 max_req set number of running concurrent requests per host
+
+  THIS METHOD IS NOW DEPRECATED AND HAS NO EFFECT
 
   $das->max_req(5);
   print $das->max_req();
@@ -1478,6 +1492,8 @@ This module is an implementation of a client for the DAS protocol (XML over HTTP
 =head1 INCOMPATIBILITIES
 
 =head1 BUGS AND LIMITATIONS
+
+  The max_req and max_hosts methods are now deprecated and have no effect.
 
 =head1 SEE ALSO
 
