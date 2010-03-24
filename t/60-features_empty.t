@@ -1,7 +1,7 @@
 #########
 # Author:        rmp
-# Last Modified: $Date: 2007/02/20 14:31:54 $ $Author: rmp $
-# Id:            $Id: 60-features_empty.t,v 1.41 2007/02/20 14:31:54 rmp Exp $
+# Last Modified: $Date$ $Author$
+# Id:            $Id$
 # Source:        $Source: /var/lib/cvsd/cvsroot/Bio-DasLite/Bio-DasLite/t/60-features_empty.t,v $
 # $HeadURL$
 #
@@ -11,7 +11,7 @@ use warnings;
 use Test::More tests => 5;
 use t::FileStub;
 
-our $VERSION = do { my @r = (q$Revision: 1.41 $ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#r, @r };
+our $VERSION = do { my @r = (q$Revision$ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#r, @r };
 
 my $das      = t::FileStub->new({
 				 'dsn'      => 'http://foo/das/bar',

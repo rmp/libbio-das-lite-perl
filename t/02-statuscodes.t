@@ -1,7 +1,7 @@
 #########
 # Author:        Andy Jenkinson <andy.jenkinson@ebi.ac.uk>
-# Last Modified: $Date: 2010/02/04 15:01:56 $ $Author: aj5 $
-# Id:            $Id: 02-statuscodes.t,v 1.2 2010/02/04 15:01:56 aj5 Exp $
+# Last Modified: $Date$ $Author$
+# Id:            $Id$
 # Source:        $Source: /var/lib/cvsd/cvsroot/Bio-DasLite/Bio-DasLite/t/02-statuscodes.t,v $
 # $HeadURL$
 #
@@ -10,7 +10,7 @@ use warnings;
 use Test::More tests => 6;
 use Bio::Das::Lite;
 
-our $VERSION = do { my @r = (q$Revision: 1.2 $ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#r, @r };
+our $VERSION = do { my @r = (q$Revision$ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#r, @r };
 
 my @test = (
   ['http://www.ebi.ac.uk/das-srv/genomicdas/das/batman_WB',  200, 'OK', 'HTTP OK, X-DAS OK'],

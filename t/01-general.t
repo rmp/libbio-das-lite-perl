@@ -1,7 +1,7 @@
 #########
 # Author:        rmp
-# Last Modified: $Date: 2007/02/23 00:18:19 $ $Author: rmp $
-# Id:            $Id: 01-general.t,v 1.42 2007/02/23 00:18:19 rmp Exp $
+# Last Modified: $Date$ $Author$
+# Id:            $Id$
 # Source:        $Source: /var/lib/cvsd/cvsroot/Bio-DasLite/Bio-DasLite/t/01-general.t,v $
 # $HeadURL$
 #
@@ -11,7 +11,7 @@ use warnings;
 use Test::More tests => 7;
 use Bio::Das::Lite;
 
-our $VERSION = do { my @r = (q$Revision: 1.42 $ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#r, @r };
+our $VERSION = do { my @r = (q$Revision$ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#r, @r };
 
 {
   my $das = Bio::Das::Lite->new();

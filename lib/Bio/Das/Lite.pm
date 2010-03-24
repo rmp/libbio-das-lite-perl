@@ -2,9 +2,9 @@
 # Author:        rpettett@cpan.org
 # Maintainer:    rpettett@cpan.org
 # Created:       2005-08-23
-# Last Modified: $Date: 2010/02/04 15:01:56 $ $Author: aj5 $
+# Last Modified: $Date$ $Author$
 # Source:        $Source: /var/lib/cvsd/cvsroot/Bio-DasLite/Bio-DasLite/lib/Bio/Das/Lite.pm,v $
-# Id:            $Id: Lite.pm,v 1.67 2010/02/04 15:01:56 aj5 Exp $
+# Id:            $Id$
 # $HeadURL $
 #
 package Bio::Das::Lite;
@@ -19,7 +19,7 @@ use English qw(-no_match_vars);
 use Readonly;
 
 our $DEBUG    = 0;
-our $VERSION  = '2.02';
+our $VERSION  = '2.03';
 Readonly::Scalar our $TIMEOUT         => 5;
 Readonly::Scalar our $REG_TIMEOUT     => 15;
 Readonly::Scalar our $LINKRE          => qr{<link\s+href="([^"]+)"[^>]*?>([^<]*)</link>|<link\s+href="([^"]+)"[^>]*?/>}smix; ## no critic (ProhibitComplexRegexes)
