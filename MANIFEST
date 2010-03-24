@@ -47,4 +47,4 @@ t/sequence.xml
 t/source.xml
 t/structure.xml
 t/types-ensembl1834.xml
-Makefile.PL
+Build.PL

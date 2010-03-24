@@ -22,7 +22,7 @@ our $DEBUG    = 0;
 our $VERSION  = '2.02';
 Readonly::Scalar our $TIMEOUT         => 5;
 Readonly::Scalar our $REG_TIMEOUT     => 15;
-Readonly::Scalar our $LINKRE          => qr{<link\s+href="([^"]+)"[^>]*?>([^<]*)</link>|<link\s+href="([^"]+)"[^>]*?/>}smix;
+Readonly::Scalar our $LINKRE          => qr{<link\s+href="([^"]+)"[^>]*?>([^<]*)</link>|<link\s+href="([^"]+)"[^>]*?/>}smix; ## no critic (ProhibitComplexRegexes)
 Readonly::Scalar our $NOTERE          => qr{<note[^>]*>([^<]*)</note>}smix;
 Readonly::Scalar our $DAS_STATUS_TEXT => {
 					  200 => '200 OK',
@@ -558,8 +558,8 @@ sub _generic_request {
   delete $self->{'currentsegs'};
   my $results   = {};
   my $reqname   = $fname;
-  $reqname      =~ s/[\(\)]//smxg;
-  ($fname)      = $fname =~ /^([a-z_]+)/smx;
+  $reqname      =~ s/(?:[(]|[)])//smxg;
+  ($fname)      = $fname =~ /^([[:lower:]_]+)/smx;
 
   my $ref       = $self->build_requests({
 					 query   => $query,
