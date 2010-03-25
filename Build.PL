@@ -32,7 +32,6 @@ my $builder = Module::Build->new(
 							 'Test::Distribution'      => '2.00',
 							 'Test::Perl::Critic'      => '1.01',
 							},
-				 create_makefile_pl  => 'passthrough',
 				 sign                => 1,
 				);
 
