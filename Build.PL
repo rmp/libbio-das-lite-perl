@@ -18,7 +18,6 @@ my $builder = Module::Build->new(
 				 requires            => {
 							 'WWW::Curl'         => '4.07',
 							 'HTTP::Response'    => '1.49',
-							 'SOAP::Lite'        => '0.69',
 							 'English'           => '1.01',
 							 'Carp'              => '1.02',
 							 'Readonly'          => '1.03',

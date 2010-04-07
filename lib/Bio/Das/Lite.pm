@@ -13,7 +13,6 @@ use warnings;
 use WWW::Curl::Multi;
 use WWW::Curl::Easy; # CURLOPT imports
 use HTTP::Response;
-use SOAP::Lite;
 use Carp;
 use English qw(-no_match_vars);
 use Readonly;
@@ -318,7 +317,7 @@ sub new {
 	       'timeout'           => $TIMEOUT,
 	       'data'              => {},
 	       'caching'           => 1,
-	       'registry'          => [qw(http://das.sanger.ac.uk/registry/services/das)],
+	       'registry'          => [qw(http://www.dasregistry.org/das)],
 	       '_registry_sources' => [],
 	      };
 
@@ -1090,28 +1089,68 @@ sub registry_sources {
   $flush and $self->{'_registry_sources'} = [];
 
   if(scalar @{$self->{'_registry_sources'}} == 0) {
-    for my $reg (@{$self->registry()}) {
-      $DEBUG and print {*STDERR} qq(Building soap request for $reg\n);
-      my $soap = SOAP::Lite->service("$reg:das_directory?wsdl");
-      $DEBUG and print {*STDERR} qq(Setting soap proxy\n);
+    
+    my $reg_urls = $self->registry();
+    if (scalar @{ $reg_urls }) {
 
-      if($self->http_proxy()) {
-	$soap->proxy($reg, proxy => ['http'=>$self->http_proxy()]);
+      my $old_dsns = $self->dsn();
+      $self->dsn($reg_urls);
+      my $sources_ref = $self->sources(); # run sources command
+      $self->dsn($old_dsns);
+      for my $url (keys %{ $sources_ref || {} }) {
+        my $ref = $sources_ref->{$url} || [];
+        (ref $ref eq 'ARRAY') || next;
+        $ref = $ref->[0] || {};
+        (ref $ref eq 'HASH') || next;
+        $ref = $ref->{'source'} || [];
+        (ref $ref eq 'ARRAY') || next;
+
+        for my $sourcegroup (@{ $ref }) {
+
+          my $versions = $sourcegroup->{'version'} || [];
+          (ref $versions eq 'ARRAY') || next;
+          for my $source (@{ $versions }) {
+
+            my $caps = $source->{'capability'} || [];
+            my $dsn;
+            my $object = { 'capabilities' => [], 'coordinateSystem' => [] };
+            for my $cap (@{ $caps }) {
+              # Extract the DAS URL from one of the capabilities
+              if (!$dsn) {
+                $dsn = $cap->{'capability_query_uri'};
+                ($dsn) = $dsn =~ m|(.+/das1?/[^/]+)|;
+                $object->{'url'} = $dsn;
+              }
+              # Add the capabilty
+              my $cap_type = $cap->{'capability_type'} || q();
+              ($cap_type) = $cap_type =~ m/das\d:(.+)/;
+              $cap_type || next;
+              push @{ $object->{'capabilities'} }, $cap_type;
+            }
+
+            $object->{'url'} || next;
+
+            my $coords = $source->{'coordinates'} || [];
+            for my $coord (@{ $coords }) {
+              my $coord_ob = {
+                'name'      => $coord->{'coordinates_authority'},
+                'category'  => $coord->{'coordinates_source'},
+                'version'   => $coord->{'coordinates_version'},
+                'NCBITaxId' => $coord->{'coordinates_taxid'},
+              };
+              if ($coord_ob->{'NCBITaxId'}) {
+                my $desc = $coord->{'coordinates'};
+                my ($species) = $desc =~ m/([^,]+)$/;
+                $coord_ob->{'organismName'} = $species,
+              }
+              push @{ $object->{'coordinateSystem'} }, $coord_ob;
+              
+            }
+
+            push @{ $self->{'_registry_sources'} }, $object;
+          }
+        }
       }
-
-      $DEBUG and print {*STDERR} qq(Running request for $reg\n);
-
-      local $SIG{ALRM} = sub { croak 'timeout'; };
-      alarm $self->timeout();
-
-      eval {
-	push @{$self->{'_registry_sources'}}, @{$soap->listServices()};
-
-      } or do {
-	carp $EVAL_ERROR;
-      };
-
-      alarm 0;
     }
   }
 
@@ -1428,7 +1467,7 @@ Bio::Das::Lite - Perl extension for the DAS (HTTP+XML) Protocol (http://biodas.o
 
 =head2 registry : Get/Set accessor for DAS-Registry service URLs
 
-  $biodaslite->registry('http://das.sanger.ac.uk/registry/das');
+  $biodaslite->registry('http://www.dasregistry.org/das');
 
   my $registry_arrayref = $biodaslite->registry();
 
@@ -1471,8 +1510,6 @@ This module is an implementation of a client for the DAS protocol (XML over HTTP
 =item WWW::Curl
 
 =item HTTP::Response
-
-=item SOAP::Lite
 
 =item Carp
 
