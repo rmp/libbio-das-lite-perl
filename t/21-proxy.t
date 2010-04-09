@@ -24,7 +24,7 @@ my ($child_pid, $port) = &setup_server;
 if ($child_pid && $port) {
   pass("run test proxy server");
 
-  my $dsn = 'http://www.ensembl.org/das/Homo_sapiens.NCBI36.reference';
+  my $dsn = 'http://www.ensembl.org/das/Homo_sapiens.GRCh37.reference';
 
   $ENV{http_proxy} = undef if $ENV{http_proxy};
 
@@ -33,57 +33,72 @@ if ($child_pid && $port) {
   my $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
   unlike($status, qr/PROXY/smx, 'direct connection');
 
-  $dl = Bio::Das::Lite->new({dsn => $dsn, http_proxy => "http://127.0.0.1:$port"});
-  $dl->features('1:1,2');
-  $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
-  is($status, '200 (OK) PROXY', 'basic proxy (constructor)');
+  SKIP: {
 
-  $dl = Bio::Das::Lite->new($dsn);
-  $dl->http_proxy("http://127.0.0.1:$port");
-  $dl->features('1:1,2');
-  $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
-  is($status, '200 (OK) PROXY', 'basic proxy (method)');
+    if (! defined $Bio::Das::Lite::{CURLOPT_NOPROXY} ) {
+      skip 'proxy support DISABLED as unsupported by your version of libcurl', 9;
+    }
 
-  $dl = Bio::Das::Lite->new($dsn);
-  $dl->http_proxy("http://user:pass\@127.0.0.1:$port");
-  $dl->features('1:1,2');
-  $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
-  is($status, '200 (OK) PROXY user:pass', 'authenticated proxy (method)');
+    $dl = Bio::Das::Lite->new({dsn => $dsn, http_proxy => "http://127.0.0.1:$port"});
+    $dl->features('1:1,2');
+    $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
+    is($status, '200 (OK) PROXY', 'basic proxy (constructor)');
 
-  $ENV{http_proxy} = "http://127.0.0.1:$port";
-  $dl = Bio::Das::Lite->new($dsn);
-  $dl->features('1:1,2');
-  $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
-  is($status, '200 (OK) PROXY', 'basic proxy (environment)');
+    $dl = Bio::Das::Lite->new($dsn);
+    $dl->http_proxy("http://127.0.0.1:$port");
+    $dl->features('1:1,2');
+    $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
+    is($status, '200 (OK) PROXY', 'basic proxy (method)');
 
-  $dl = Bio::Das::Lite->new({dsn=>$dsn,no_proxy=>'ensembl.org'});
-  $dl->features('1:1,2');
-  $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
-  unlike($status, qr/PROXY/smx, 'no-proxy (constructor) positive match');
+    if (! defined $Bio::Das::Lite::{CURLOPT_PROXYUSERNAME} || !defined $Bio::Das::Lite::{CURLOPT_PROXYPASSWORD} ) {
+      skip 'authenticating proxy support DISABLED as unsupported by your version of libcurl', 1;
+    }
 
-  $dl = Bio::Das::Lite->new($dsn);
-  $dl->no_proxy('ensembl.org', 'another.com');
-  $dl->features('1:1,2');
-  $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
-  unlike($status, qr/PROXY/smx, 'no-proxy (method list) positive match');
+    $dl = Bio::Das::Lite->new($dsn);
+    $dl->http_proxy("http://user:pass\@127.0.0.1:$port");
+    $dl->features('1:1,2');
+    $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
+    is($status, '200 (OK) PROXY user:pass', 'authenticated proxy (method)');
 
-  $dl = Bio::Das::Lite->new($dsn);
-  $dl->no_proxy('wibble.com', 'another.com');
-  $dl->features('1:1,2');
-  $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
-  is($status, '200 (OK) PROXY', 'no-proxy (method list) negative match');
+    $ENV{http_proxy} = "http://127.0.0.1:$port";
+    $dl = Bio::Das::Lite->new($dsn);
+    $dl->features('1:1,2');
+    $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
+    is($status, '200 (OK) PROXY', 'basic proxy (environment)');
 
-  $dl = Bio::Das::Lite->new($dsn);
-  $dl->no_proxy(['ensembl.org', 'another.com']);
-  $dl->features('1:1,2');
-  $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
-  unlike($status, qr/PROXY/smx, 'no-proxy (method listref) positive match');
+    if (! defined $Bio::Das::Lite::{CURLOPT_NOPROXY} ) {
+      skip 'no_proxy support DISABLED as unsupported by your version of libcurl', 5;
+    }
 
-  $ENV{no_proxy} = 'ensembl.org, another.com';
-  $dl = Bio::Das::Lite->new($dsn);
-  $dl->features('1:1,2');
-  $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
-  unlike($status, qr/PROXY/smx, 'no-proxy (environment) positive match');
+    $dl = Bio::Das::Lite->new({dsn=>$dsn,no_proxy=>'ensembl.org'});
+    $dl->features('1:1,2');
+    $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
+    unlike($status, qr/PROXY/smx, 'no-proxy (constructor) positive match');
+  
+    $dl = Bio::Das::Lite->new($dsn);
+    $dl->no_proxy('ensembl.org', 'another.com');
+    $dl->features('1:1,2');
+    $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
+    unlike($status, qr/PROXY/smx, 'no-proxy (method list) positive match');
+  
+    $dl = Bio::Das::Lite->new($dsn);
+    $dl->no_proxy('wibble.com', 'another.com');
+    $dl->features('1:1,2');
+    $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
+    is($status, '200 (OK) PROXY', 'no-proxy (method list) negative match');
+  
+    $dl = Bio::Das::Lite->new($dsn);
+    $dl->no_proxy(['ensembl.org', 'another.com']);
+    $dl->features('1:1,2');
+    $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
+    unlike($status, qr/PROXY/smx, 'no-proxy (method listref) positive match');
+  
+    $ENV{no_proxy} = 'ensembl.org, another.com';
+    $dl = Bio::Das::Lite->new($dsn);
+    $dl->features('1:1,2');
+    $status = $dl->statuscodes("$dsn/features?segment=1:1,2");
+    unlike($status, qr/PROXY/smx, 'no-proxy (environment) positive match');
+  };
 
 } else {
   fail("run test proxy server");
