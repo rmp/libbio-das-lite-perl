@@ -1158,9 +1158,13 @@ sub registry_sources {
               'capabilities'     => [],
               'coordinateSystem' => [],
               'description'      => $sourcegroup->{'source_description'},
-              'helperurl'        => $sourcegroup->{'source_doc_ref'},
               'id'               => $source->{'version_uri'},
             };
+
+            # Some sources have 'more info' URLs
+            if ( my $doc_href = $sourcegroup->{'source_doc_href'} ) {
+               $object->{'helperurl'} = $doc_href;
+            }
 
             # Add the capabilties
             for my $cap (@{ $caps }) {
