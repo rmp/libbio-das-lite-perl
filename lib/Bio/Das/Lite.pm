@@ -1125,13 +1125,21 @@ sub registry_sources {
     my $reg_urls = $self->registry();
     if (scalar @{ $reg_urls }) {
 
-      my $old_dsns = $self->dsn();
+      my $old_dsns     = $self->dsn();
+      my $old_statuses = $self->{'statuscodes'};
       $self->dsn($reg_urls);
       # Run the DAS sources command
       my $sources_ref = $self->sources();
+      my $statuses    = $self->{'statuscodes'};
       $self->dsn($old_dsns);
+      $self->{'statuscodes'} = $old_statuses;
 
       for my $url (keys %{ $sources_ref || {} }) {
+        my $status = $statuses->{$url} || 'Unknown status';
+        if ($status !~ m/^200/mxs) {
+          warn "Error fetching sources from '$url' : $status";
+          next;
+        }
         my $ref = $sources_ref->{$url} || [];
 
         # Some basic checks
