@@ -26,7 +26,7 @@ for my $service ('http://das.ensembl.org/das',
   #########
   # test single dsn from constructor
   #
-  my $das     = Bio::Das::Lite->new({'dsn' => $service});
+  my $das     = Bio::Das::Lite->new({'dsn' => $service, 'timeout' => 10});
   ok(defined $das,                  'new with a single dsn returned something');
   ok(ref($das->dsn()) eq 'ARRAY',   'single service get gave an array ref');
   ok(scalar (@{$das->dsn()}) == 1,  'single service get had length of one');

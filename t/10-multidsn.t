@@ -13,7 +13,7 @@ use Bio::Das::Lite;
 
 our $VERSION = do { my @r = (q$Revision$ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#r, @r };
 my @services = qw(http://das.ensembl.org/das/dsn http://das.sanger.ac.uk);
-my $das      = Bio::Das::Lite->new({'dsn' => \@services});
+my $das      = Bio::Das::Lite->new({'dsn' => \@services, 'timeout' => 10});
 
 ok(defined $das,                  'new with a multi dsn returned something');
 ok(ref($das->dsn()) eq 'ARRAY',   'multi service get gave an array ref');
