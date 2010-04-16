@@ -8,19 +8,15 @@
 package singledsn;
 use strict;
 use warnings;
-use Test::More tests => 70;
+use Test::More tests => 30;
 use Bio::Das::Lite;
 
 our $VERSION = do { my @r = (q$Revision$ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#r, @r };
 
 $Bio::Das::Lite::DEBUG = 0;
 
-for my $service ('http://das.ensembl.org/das',
-		 'http://das.ensembl.org/das/',
+for my $service ('http://das.sanger.ac.uk/das',
 		 'http://das.ensembl.org/das/dsn',
-		 'http://das.ensembl.org/das/dsn/',
-		 'http://das.ensembl.org/das/dsn/foo',
-		 'http://das.ensembl.org/das/dsn?foo',
 		 'http://das.ensembl.org/das/dsn#foo') {
 
   #########
