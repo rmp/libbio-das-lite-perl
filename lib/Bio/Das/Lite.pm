@@ -859,7 +859,7 @@ sub _fetch {
 
     if ( my $proxy = $self->http_proxy ) {
       if ( defined $Bio::Das::Lite::{CURLOPT_PROXY} ) {
-        $curl->setopt( CURLOPT_PROXY, $proxy );
+        $curl->setopt( &CURLOPT_PROXY, $proxy );
       } else {
         croak 'Trying to set a proxy, but your version of libcurl does not support this feature';
       }
@@ -867,7 +867,7 @@ sub _fetch {
 
     if ( my $proxy_user = $self->proxy_user ) {
       if ( defined $Bio::Das::Lite::{CURLOPT_PROXYUSERNAME} ) {
-        $curl->setopt( CURLOPT_PROXYUSERNAME, $proxy_user );
+        $curl->setopt( &CURLOPT_PROXYUSERNAME, $proxy_user );
       } else {
         croak 'Trying to set a proxy username, but your version of libcurl does not support this feature';
       }
@@ -875,7 +875,7 @@ sub _fetch {
 
     if ( my $proxy_pass = $self->proxy_pass ) {
       if ( defined $Bio::Das::Lite::{CURLOPT_PROXYPASSWORD} ) {
-        $curl->setopt( CURLOPT_PROXYPASSWORD, $proxy_pass );
+        $curl->setopt( &CURLOPT_PROXYPASSWORD, $proxy_pass );
       } else {
         croak 'Trying to set a proxy password, but your version of libcurl does not support this feature';
       }
@@ -884,7 +884,7 @@ sub _fetch {
     my @no_proxy = @{ $self->no_proxy };
     if ( scalar @no_proxy ) {
       if ( defined $Bio::Das::Lite::{CURLOPT_NOPROXY} ) {
-        $curl->setopt( CURLOPT_NOPROXY, join q(,), @no_proxy );
+        $curl->setopt( &CURLOPT_NOPROXY, join q(,), @no_proxy );
       } else {
         croak 'Trying to set proxy exclusions, but your version of libcurl does not support this feature';
       }
