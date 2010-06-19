@@ -1,5 +1,8 @@
 Revision history for Perl extension Bio::Das::Lite.
 
+2.04 Patches to catch out-of-date versions of libcurl.
+     Refactored some routines to reduce complexity.
+
 2.01 Bugfix for authenticating proxies.
      No longer appends ? to DAS request URIs without query params.
      Supports links with no descriptions.
