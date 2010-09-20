@@ -34,7 +34,7 @@ for my $service ('http://das.sanger.ac.uk/das',
   my @keys = keys %{$dsns};
   ok(scalar @keys == 1,             'dsns call gave one key');
   my $key = $keys[0];
-  ok(ref($dsns->{$key}) eq 'ARRAY', 'dsns call gave a arrayref value for the one key');
+  ok($dsns->{$key} && ref($dsns->{$key}) eq 'ARRAY', "dsns call gave a arrayref value for the key $key");
   my @sources = @{$dsns->{$key}};
   ok(scalar @sources > 0,           'dsns call returned at least one source');
   my @broken = grep { ref($_) ne 'HASH' } @sources;
