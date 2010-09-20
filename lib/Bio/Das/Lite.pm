@@ -839,6 +839,7 @@ sub _fetch {
     my $curl = WWW::Curl::Easy->new();
 
     $curl->setopt( CURLOPT_NOPROGRESS, 1 );
+    $curl->setopt( CURLOPT_FOLLOWLOCATION, 1 );
     $curl->setopt( CURLOPT_USERAGENT, $self->user_agent );
     $curl->setopt( CURLOPT_URL, $url );
 
