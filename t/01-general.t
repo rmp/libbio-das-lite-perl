@@ -31,7 +31,7 @@ our $VERSION = do { my @r = (q$Revision$ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#
   #
   my $str  = q();
   my $urls = {
-	      'http://www.google.com/' => sub { $str .= $_[0]; return; }
+	      'http://search.cpan.org/~rpettett/Bio-Das-Lite/' => sub { $str .= $_[0]; return; }
 	     };
   my $das  = Bio::Das::Lite->new();
   $das->_fetch($urls);
