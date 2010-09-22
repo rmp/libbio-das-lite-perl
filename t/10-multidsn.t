@@ -8,7 +8,7 @@
 package multidsn;
 use strict;
 use warnings;
-use Test::More tests => 10;
+use Test::More tests => 11;
 use Bio::Das::Lite;
 
 our $VERSION = do { my @r = (q$Revision$ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#r, @r };
@@ -29,6 +29,10 @@ my @keys = keys %{$dsns};
 ok(scalar @keys == 1,             'dsns call gave one key');
 
 my $key = $keys[0];
+
+my $code = $das->statuscodes($key);
+ok($code =~ /^200/,               "dsns call returned OK status (status is $code)");
+
 ok(ref $dsns->{$key} eq 'ARRAY', 'dsns call gave a arrayref value for the one key');
 
 my @sources = @{$dsns->{$key}};

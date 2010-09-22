@@ -8,7 +8,7 @@
 package singledsn;
 use strict;
 use warnings;
-use Test::More tests => 30;
+use Test::More tests => 33;
 use Bio::Das::Lite;
 
 our $VERSION = do { my @r = (q$Revision$ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#r, @r };
@@ -29,16 +29,18 @@ for my $service ('http://das.sanger.ac.uk/das',
   ok($das->dsn->[0] eq $service,    'single service get returned the same dsn');
 
   my $dsns = $das->dsns();
-  ok(defined $dsns,                 'dsns call returned something');
-  ok(ref($dsns) eq 'HASH',          'dsns call gave a hash');
+  ok(defined $dsns,                 "dsns call returned something (service $service)");
+  ok(ref($dsns) eq 'HASH',          "dsns call gave a hash (service $service)");
   my @keys = keys %{$dsns};
-  ok(scalar @keys == 1,             'dsns call gave one key');
+  ok(scalar @keys == 1,             "dsns call gave one key service $service)");
   my $key = $keys[0];
-  ok($dsns->{$key} && ref($dsns->{$key}) eq 'ARRAY', "dsns call gave a arrayref value for the key $key");
-  my @sources = @{$dsns->{$key}};
-  ok(scalar @sources > 0,           'dsns call returned at least one source');
+  my $code = $das->statuscodes($key);
+  ok($code =~ /^200/,               "dsns call returned OK status (service $service status $code)");
+  ok($dsns->{$key} && ref($dsns->{$key}) eq 'ARRAY', "dsns call gave a arrayref value (service $service)");
+  my @sources = @{$dsns->{$key} || []};
+  ok(scalar @sources > 0,           "dsns call returned at least one source (service $service)");
   my @broken = grep { ref($_) ne 'HASH' } @sources;
-  ok(scalar @broken == 0,           'all sources parsed correctly into hashes');
+  ok(scalar @broken == 0,           "all sources parsed correctly into hashes (service $service)");
 }
 
 1;
