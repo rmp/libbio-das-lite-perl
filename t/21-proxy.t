@@ -20,6 +20,9 @@ BEGIN {
   }
 }
 
+# We will only communicate with the local host on the loopback interface, we don't want interference from a proxy!
+delete $ENV{http_proxy};
+
 my ($child_pid, $port) = &setup_server;
 if ($child_pid && $port) {
   pass("run test proxy server");

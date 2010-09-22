@@ -938,6 +938,12 @@ sub _receive {
         if ($retcode == 0) {
           my $res = HTTP::Response->parse( $head . "\n" . $body );
           my $msg;
+
+          # Workaround for redirects, which result in multiple headers:
+          while ($res->content =~ /^HTTP\/\d+\.\d+ \d+/) { # check for status line like "HTTP/1.1 200 OK"
+            $res = HTTP::Response->parse( $res->content );
+          }
+
           # Prefer X-DAS-Status
           my ($das_status) = ($res->header('X-DAS-Status') || q()) =~ m/^(\d+)/smx;
           if ($das_status) {
