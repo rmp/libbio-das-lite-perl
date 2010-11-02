@@ -913,7 +913,7 @@ sub _receive {
           my $msg;
 
           # Workaround for redirects, which result in multiple headers:
-          while ($res->content =~ /^HTTP\/\d+\.\d+ \d+/) { # check for status line like "HTTP/1.1 200 OK"
+          while ($res->content =~ /^HTTP\/\d+\.\d+\s\d+/mxs) { # check for status line like "HTTP/1.1 200 OK"
             $res = HTTP::Response->parse( $res->content );
           }
 
