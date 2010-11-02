@@ -19,8 +19,11 @@ my $das      = t::FileStub->new({
 				});
 my $features = $das->features();
 my $results  = (values %{$features})[0];
+my %features = map { $_->{'feature_id'} => $_ } @{ $results };
 
-my $first_feature_group_data = $results->[0]->{'group'}->[0];
+my $first_feature = $features{'id'};
+my $parent_id = $first_feature->{'parent'}->[0]->{'parent_id'};
+my $first_feature_group_data = $features{$parent_id};
 is(scalar @{$first_feature_group_data->{'link'}},      2,                     'Corrent number of links returned');
 is(scalar @{$first_feature_group_data->{'note'}},      2,                     'Corrent number of notes returned');
 is($first_feature_group_data->{'link'}->[1]->{'href'}, 'groupurl2',           'Correct link href');

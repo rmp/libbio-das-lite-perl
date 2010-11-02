@@ -40,13 +40,7 @@ Readonly::Scalar our $DAS_STATUS_TEXT => {
 # This is split up by call to reduce the number of tag passes for each response
 #
 our %COMMON_STYLE_ATTRS = (
-			   yoffset        => [], # WTSI extension (available in Ensembl)
-			   scorecolormin  => [], # WTSI extension
-			   scorecolormax  => [], # WTSI extension
-			   scoreheightmin => [], # WTSI extension
-			   scoreheightmax => [], # WTSI extension
-			   zindex         => [], # WTSI extension (available in Ensembl)
-			   width          => [], # WTSI extension (available in Ensembl)
+			   zindex         => [],
 			   height         => [],
 			   fgcolor        => [],
 			   bgcolor        => [],
@@ -66,25 +60,24 @@ our $ATTR     = {
 		 '_segment'     => {
 				    'segment'      => [qw(id start stop version label)],
 				   },
-# feature and group notes and links are special cases and taken care of elsewhere
+# feature notes and links are special cases and taken care of elsewhere
 		 'feature'      => {
 				    'feature'      => [qw(id label)],
-				    'method'       => [qw(id)],
-				    'type'         => [qw(id category reference subparts superparts)],
+				    'method'       => [qw(id cvId)],
+				    'type'         => [qw(id category reference subparts superparts cvId)],
 				    'target'       => [qw(id start stop)],
 				    'start'        => [],
 				    'end'          => [],
 				    'orientation'  => [],
 				    'phase'        => [],
 				    'score'        => [],
-				    'group'        => {
-						       'group'   => [qw(id label type)],
-						       'target'  => [qw(id start stop)],
-						      },
+				    'parent'       => { 'parent' => [qw(id)] },
+				    'part'         => { 'part'   => [qw(id)] },
 				   },
 		 'sequence'     => {
-				    'sequence'     => [qw(id start stop moltype version)],
+				    'sequence'     => [qw(id start stop version label)],
 				   },
+# NOTE: The dna command is deprecated:
 		 'dna'          => {
 				    'sequence'     => {
 						       'sequence' => [qw(id start stop version)],
@@ -92,11 +85,12 @@ our $ATTR     = {
 						      },
 				   },
 		 'entry_points' => {
-				    'entry_points' => [qw(href version)],
+				    'entry_points' => [qw(href total start end)],
 				    'segment'      => {
-						       'segment' => [qw(id start stop type orientation size subparts)],
+						       'segment' => [qw(id start stop type orientation subparts version)],
 						      },
 				   },
+# NOTE: The dsn command is deprecated:
 		 'dsn'          => {
 				    'dsn'          => [],
 				    'source'       => [qw(id)],
@@ -104,8 +98,8 @@ our $ATTR     = {
 				    'description'  => [],
 				   },
 		 'type'         => {
-				    'type'         => [qw(id method category)],
-				    'segment'      => [qw(id start stop type orientation size subparts)],
+				    'type'         => [qw(id category cvId)],
+				    'segment'      => [qw(id start stop version label)],
 				   },
 		 'alignment'    => {
 				    'alignment'    => [qw(name alignType max)],
@@ -213,14 +207,12 @@ our $ATTR     = {
                                                                                 'glyph'          => [qw(zoom)],
 										'arrow'          => {
 												     'parallel'     => [],
-												     'bar_style'    => [], # WTSI extension
+												     'southwest'    => [],
+												     'northeast'    => [],
 												     %COMMON_STYLE_ATTRS,
 												    },
 										'anchored_arrow' => {
 												     'parallel'     => [],
-												     'orientation'  => [], # WTSI extension
-												     'no_anchor'    => [], # WTSI extension
-												     'bar_style'    => [], # WTSI extension
 												     %COMMON_STYLE_ATTRS,
 												    },
 										'box'            => {
@@ -228,42 +220,30 @@ our $ATTR     = {
 												     'pattern'      => [],  # WTSI extension
 												     %COMMON_STYLE_ATTRS,
 												    },
-										'farrow'         => {                      # WTSI extension
-												     'orientation'  => [],
-												     'no_anchor'    => [],
-												     'bar_style'    => [], # WTSI extension
-												     %COMMON_STYLE_ATTRS,
-												    },
-										'rarrow'         => {                      # WTSI extension
-												     'orientation'  => [],
-												     'no_anchor'    => [],
-												     'bar_style'    => [], # WTSI extension
-												     %COMMON_STYLE_ATTRS,
-												    },
 										'cross'          => {
-												     'linewidth'    => [],  # WTSI extension
 												     %COMMON_STYLE_ATTRS,
 												    },
 										'dot'            => \%COMMON_STYLE_ATTRS,
 										'ex'             => {
-												     'linewidth'    => [],  # WTSI extension
 												     %COMMON_STYLE_ATTRS,
 												    },
-										'hidden'         => \%COMMON_STYLE_ATTRS,
+										'hidden'         => {},
 										'line'           => {
 												     'style'        => [],
 												     %COMMON_STYLE_ATTRS,
 												    },
 										'span'           => {
-												     'bar_style'    => [], # WTSI extension
 												     %COMMON_STYLE_ATTRS,
 												    },
 										'text'           => {
 												     'font'         => [],
 												     'fontsize'     => [],
 												     'string'       => [],
-												     'style'        => [],
-												     %COMMON_STYLE_ATTRS,
+												     #'style'        => [], HANDLED SEPARATELY
+												     'fgcolor'      => [],
+												     'bgcolor'      => [],
+												     'label'        => [],
+												     'bump'         => [],
 												    },
 										'primers'        => \%COMMON_STYLE_ATTRS,
 										'toomany'        => {
@@ -273,21 +253,11 @@ our $ATTR     = {
 										'triangle'       => {
 												     'linewidth'    => [],
 												     'direction'    => [],
-												     'orientation'  => [],
 												     %COMMON_STYLE_ATTRS,
 												    },
-										'gradient'       => {
-												     %SCORED_STYLE_ATTRS,
-												    },
-										'histogram'      => {
-												     %SCORED_STYLE_ATTRS,
-												    },
-										'tiling'         => {
-												     %SCORED_STYLE_ATTRS,
-												    },
-										'lineplot'       => {
-												     %SCORED_STYLE_ATTRS,
-												    },
+										'gradient'       => \%SCORED_STYLE_ATTRS,
+										'histogram'      => \%SCORED_STYLE_ATTRS,
+										'lineplot'       => \%SCORED_STYLE_ATTRS,
 									       },
 								   },
 						    },
@@ -298,12 +268,13 @@ our $ATTR     = {
 # $OPTS contains information about parameters to use for queries
 #
 our $OPTS = {
-	     'feature'      => [qw(segment type category categorize feature_id group_id maxbins)],
-	     'type'         => [qw(segment type)],
+	     'feature'      => [qw(segment type category categorize feature_id maxbins)],
+	     'type'         => [qw(segment)],
 	     'sequence'     => [qw(segment)],
 	     'dna'          => [qw(segment)],
-	     'entry_points' => [],
+	     'entry_points' => [qw(rows)],
 	     'dsn'          => [],
+	     'sources'      => [],
 	     'stylesheet'   => [],
              'alignment'    => [qw(query rows subject subjectcoordsys)],
 	     'structure'    => [qw(query)],
@@ -805,7 +776,8 @@ sub postprocess {
 sub _fetch {
   my ($self, $url_ref, $headers) = @_;
 
-  $self->{'statuscodes'} = {};
+  $self->{'statuscodes'}  = {};
+  $self->{'specversions'} = {};
   if(!$headers) {
     $headers = {};
   }
@@ -813,6 +785,7 @@ sub _fetch {
   if($ENV{HTTP_X_FORWARDED_FOR}) {
     $headers->{'X-Forwarded-For'} ||= $ENV{'HTTP_X_FORWARDED_FOR'};
   }
+  $headers->{'X-DAS-Version'} ||= '1.6';
 
   # Convert header pairs to strings
   my @headers;
@@ -944,6 +917,8 @@ sub _receive {
             $res = HTTP::Response->parse( $res->content );
           }
 
+          $self->{specversions}->{$uri} = $res->header('X-DAS-Version');
+
           # Prefer X-DAS-Status
           my ($das_status) = ($res->header('X-DAS-Status') || q()) =~ m/^(\d+)/smx;
           if ($das_status) {
@@ -978,6 +953,12 @@ sub statuscodes {
   my ($self, $url)         = @_;
   $self->{'statuscodes'} ||= {};
   return $url?$self->{'statuscodes'}->{$url}:$self->{'statuscodes'};
+}
+
+sub specversions {
+  my ($self, $url)         = @_;
+  $self->{'specversions'} ||= {};
+  return $url ? $self->{'specversions'}->{$url} : $self->{'specversions'};
 }
 
 #########
@@ -1028,6 +1009,7 @@ sub _parse_branch {
     #########
     # To-do: normalise group data across features here - mostly for 'group' tags in feature responses
     # i.e. merge links, use cached hashrefs (keyed on group id) describing groups to reduce the parsed tree footprint
+    # NOTE: groups are now deprecated
     #
   }
 
@@ -1588,6 +1570,11 @@ Bio::Das::Lite - Perl extension for the DAS (HTTP+XML) Protocol (http://biodas.o
 
   my $code         = $das->statuscodes($url);
   my $code_hashref = $das->statuscodes();
+
+=head2 specversions : Retrieve a server's DAS specification version for a request URL
+
+  my $version         = $das->specversions($url);  # e.g. 1.53, 1.6, 1.6E
+  my $version_hashref = $das->specversions();
 
 =head2 max_hosts set number of running concurrent host connections
 

@@ -14,13 +14,15 @@
          <NOTE> note text </NOTE>
 	 <LINK href="url"> link text </LINK>
 	 <TARGET id="id" start="x" stop="y">target name</TARGET>
-	 <GROUP id="id" label="label" type="type">
-	       <NOTE> group note 1 text </NOTE>
-	       <LINK href="groupurl1"> group link text 1</LINK>
-	       <NOTE> group note 2 text </NOTE>
-	       <LINK href="groupurl2"> group link text 2</LINK>
-	       <TARGET id="id" start="x" stop="y">target name</TARGET>
-         </GROUP>
+         <PARENT id="id2" />
+      </FEATURE>
+      <FEATURE id="id2" label="label">
+         <TYPE id="type">type</TYPE>
+         <NOTE> group note 1 text </NOTE>
+         <LINK href="groupurl1"> group link text 1</LINK>
+         <NOTE> group note 2 text </NOTE>
+         <LINK href="groupurl2"> group link text 2</LINK>
+         <TARGET id="id" start="x" stop="y">target name</TARGET>
       </FEATURE>
   </SEGMENT>
   </GFF>
