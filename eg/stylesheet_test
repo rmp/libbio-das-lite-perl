@@ -1,16 +1,16 @@
 #!/usr/local/bin/perl -wT
 use lib "lib";
-use Bio::DasLite;
+use Bio::Das::Lite;
 use Data::Dumper;
-$Bio::DasLite::DEBUG = 0;
-print STDERR "VERSION=",$Bio::DasLite::VERSION, "\n";
+$Bio::Das::Lite::DEBUG = 0;
+print STDERR "VERSION=",$Bio::Das::Lite::VERSION, "\n";
 
-my $das = Bio::DasLite->new({
-	'dsn'        => 'http://das.ensembl.org/das',
+my $das = Bio::Das::Lite->new({
+	'dsn'        => 'http://das.sanger.ac.uk/das',
 });
 
 my $ref = $das->dsns();
-my @all = map { "http://das.ensembl.org/das/$_->{'source'}" } map { @{$ref->{$_}} } keys %{$ref};
+my @all = map { "http://das.sanger.ac.uk/das/$_->{'source'}" } map { @{$ref->{$_}} } keys %{$ref};
 
 $das->dsn(\@all);
 

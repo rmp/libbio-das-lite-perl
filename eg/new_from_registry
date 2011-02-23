@@ -1,15 +1,14 @@
 #!/usr/bin/perl -wT
 use strict;
 use lib qw(lib ../lib);
-use Bio::DasLite;
+use Bio::Das::Lite;
 
-my $bdl = Bio::DasLite->new_from_registry({
-					   'http_proxy' => 'http://webcache.sanger.ac.uk:3128/',
+my $bdl = Bio::Das::Lite->new_from_registry({
 					   'capability' => ['features'],
 					   'category'   => ['Protein Sequence'],
 					  });
 
 
-print qq(Using Bio::DasLite v$Bio::DasLite::VERSION configured with registry DSN list:\n),
+print qq(Using Bio::Das::Lite v$Bio::Das::Lite::VERSION configured with registry DSN list:\n),
   join("\n", sort @{$bdl->dsn()}),
   "\n";

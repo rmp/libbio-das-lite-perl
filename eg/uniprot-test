@@ -1,12 +1,12 @@
 #!/usr/local/bin/perl -wT
 use lib qw(./blib/lib ./lib ../blib/lib);
 use strict;
-use Bio::DasLite;
+use Bio::Das::Lite;
 use Data::Dumper;
 
-$Bio::DasLite::DEBUG = 0;
+$Bio::Das::Lite::DEBUG = 0;
 
-my $bd = Bio::DasLite->new("http://www.ebi.ac.uk/das-srv/uniprot/das/aristotle");
+my $bd = Bio::Das::Lite->new("http://www.ebi.ac.uk/das-srv/uniprot/das/uniprot");
 #print Dumper($bd->features("P50225"));
 
 my $blks = [];

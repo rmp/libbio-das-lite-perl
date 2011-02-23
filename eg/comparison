@@ -1,14 +1,14 @@
 #!/usr/local/bin/perl -wT
 #########
-# This script needs to have Bio:Das and Bio::DasLite installed, or be started with:
+# This script needs to have Bio:Das and Bio::Das::Lite installed, or be started with:
 # perl -I/path/to/bio-das -I/path/to/bio-daslite
 #
 use strict;
 use Bio::Das;
-use Bio::DasLite;
+use Bio::Das::Lite;
 use Benchmark;
 use Data::Dumper;
-#$Bio::DasLite::DEBUG = 1;
+#$Bio::Das::Lite::DEBUG = 1;
 
 use vars qw($SOURCES);
 $SOURCES  = [qw(http://servlet.sanger.ac.uk/das/ensembl1834
@@ -24,11 +24,11 @@ for (my $chr=1;$chr<=20;$chr++) {
 }
 
 my $biodas     = Bio::Das->new();
-my $biodaslite = Bio::DasLite->new({'dsn' => $SOURCES, 'caching' => 0});
+my $biodaslite = Bio::Das::Lite->new({'dsn' => $SOURCES, 'caching' => 0});
 
 timethese(
 	  5, {
 	      "Bio::Das"     => sub { $biodas->features(-dsn => $SOURCES, -segment => \@segments); },
-	      "Bio::DasLite" => sub { $biodaslite->features(\@segments); },
+	      "Bio::Das::Lite" => sub { $biodaslite->features(\@segments); },
 	     },
 	 );
