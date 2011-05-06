@@ -1,13 +1,13 @@
 Bio::Das::Lite
 ==============
 
-
 Bio::Das::Lite is an implementation of the BioDas protocol, http://biodas.org/
 for the retrieval of biological data from XML sources over HTTP.
 
 Bio::Das::Lite is designed as a lightweight and more forgiving alternative to
 the client/retrieval/parsing components of Bio::Das. Bio::Das::Lite itself is
 not a drop-in replacement for Bio::Das but it can be subclassed to do so.
+
 
 NOTE
 Results are returned hashed against the query URL which caused them.
@@ -39,6 +39,12 @@ Please note that some elements of HTTP proxy support require that WWW::Curl has 
   authenticating proxies: 7.19.1
   noproxy (proxy exclusion lists): 7.19.4
 If you have an earlier version installed, you will not be able to use these features of Bio::Das::Lite. Regular proxy support should be unaffected.
+
+
+BUGS
+
+To report bugs please log them against rt.cpan.org.
+
 
 COPYRIGHT AND LICENCE
 

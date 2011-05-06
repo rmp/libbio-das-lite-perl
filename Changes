@@ -1,6 +1,6 @@
 Revision history for Perl extension Bio::Das::Lite.
 
-2.11 feature.type parsing fix from Nick Langridge
+2.11 feature.type.cvId parsing fix from Nick Langridge
 
 2.10 DAS 1.6 spec, all patches from Andy
 
