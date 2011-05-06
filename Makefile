@@ -20,6 +20,11 @@ test: all
 	./Build test verbose=1 | tee "build.tap"
 
 manifest: Build.PL lib Makefile eg t README MANIFEST Changes
+	touch Bio-Das-Lite-.gz
+	rm Bio-Das-Lite-*gz
 	find . -type f | grep -vE 'DS_Store|git|_build|META.yml|Build|cover_db|svn|blib|\~|\.old|CVS|Makefile|rpmbuild' | sed 's/^\.\///' | sort > MANIFEST
 	echo "Makefile"    >> MANIFEST
 	echo "Build.PL"    >> MANIFEST
+
+dist: all manifest
+	./Build dist

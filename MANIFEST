@@ -51,3 +51,4 @@ t/FileStubCompat.pm
 t/FileStub.pm
 Makefile
 Build.PL
+META.yml
