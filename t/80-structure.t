@@ -15,7 +15,7 @@ our $VERSION  = do { my @r = (q$Revision$ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $
 
 my $das       = t::FileStub->new({
 				  'dsn'      => 'foo',
-				  'filedata' => 't/structure.xml',
+				  'filedata' => 't/data/structure.xml',
 				 });
 my $structure = $das->structure();
 my $results   = (values %{$structure})[0];

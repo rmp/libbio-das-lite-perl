@@ -1,5 +1,11 @@
 Revision history for Perl extension Bio::Das::Lite.
 
+2.11 feature.type parsing fix from Nick Langridge
+
+2.10 DAS 1.6 spec, all patches from Andy
+
+2.05 Probably the last release on the DAS 1.53 spec
+
 2.04 Patches to catch out-of-date versions of libcurl.
      Refactored some routines to reduce complexity.
 

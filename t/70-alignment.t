@@ -15,7 +15,7 @@ our $VERSION  = do { my @r = (q$Revision$ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $
 
 my $das       = t::FileStub->new({
 				  'dsn'      => 'foo',
-				  'filedata' => 't/alignment.xml',
+				  'filedata' => 't/data/alignment.xml',
 				 });
 my $alignment = $das->alignment();
 my $results   = (values %{$alignment})[0];

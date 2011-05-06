@@ -18,7 +18,7 @@ my $das;
 for my $call (qw(entry_points types features sequence)) {
   $das = t::FileStub->new({
 			   'dsn'      => 'foo',
-			   'filedata' => "t/${call}-ensembl1834.xml",
+			   'filedata' => "t/data/${call}-ensembl1834.xml",
 			  });
   my $res       = $das->$call($req);
   ok(ref$res eq 'HASH',                   "$call returns a hash");

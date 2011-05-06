@@ -18,7 +18,7 @@ use English qw(-no_match_vars);
 use Readonly;
 
 our $DEBUG    = 0;
-our $VERSION  = '2.04';
+our $VERSION  = '2.10';
 Readonly::Scalar our $TIMEOUT         => 5;
 Readonly::Scalar our $REG_TIMEOUT     => 15;
 Readonly::Scalar our $LINKRE          => qr{<link\s+href="([^"]+)"[^>]*?>([^<]*)</link>|<link\s+href="([^"]+)"[^>]*?/>}smix;
@@ -1021,7 +1021,7 @@ sub _parse_branch {
     my $opts = $attr->{$tag}||[];
 
     for my $a (@{$opts}) {
-      ($tmp)              = $blk =~ m{<$tag[^>]+$a="([^"]+?)"}smix;
+      ($tmp)              = $blk =~ m{<$tag[^>]*\s+$a="([^"]+?)"}smix;
       if(defined $tmp) {
 	$ref->{"${tag}_$a"} = $tmp;
       }

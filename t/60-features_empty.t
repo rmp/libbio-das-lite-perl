@@ -15,7 +15,7 @@ our $VERSION = do { my @r = (q$Revision$ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#
 
 my $das      = t::FileStub->new({
 				 'dsn'      => 'http://foo/das/bar',
-				 'filedata' => 't/features-empty.xml',
+				 'filedata' => 't/data/features-empty.xml',
 				});
 my $features = $das->features();
 my $results  = (values %{$features})[0];

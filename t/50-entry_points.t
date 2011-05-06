@@ -15,7 +15,7 @@ our $VERSION = do { my @r = (q$Revision$ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#
 
 my $das      = t::FileStub->new({
 				 'dsn'      => 'foo',
-				 'filedata' => 't/entry_points.xml',
+				 'filedata' => 't/data/entry_points.xml',
 				});
 my $ep       = $das->entry_points();
 my $results  = (values %{$ep})[0];

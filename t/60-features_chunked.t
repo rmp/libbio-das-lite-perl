@@ -15,7 +15,7 @@ our $VERSION = do { my @r = (q$Revision$ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#
 
 my $das      = t::FileStubChunked->new({
 					'dsn'      => 'http://foo/das/bar',
-					'filedata' => 't/features.xml',
+					'filedata' => 't/data/features.xml',
 				       });
 my $features = $das->features();
 my $results  = (values %{$features})[0];
