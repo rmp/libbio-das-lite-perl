@@ -1397,12 +1397,12 @@ Bio::Das::Lite - Perl extension for the DAS (HTTP+XML) Protocol (http://biodas.o
 
  Options are as above, plus
                  capability OR capabilities   (optional arrayref of capabilities)
-                 category                     (optional arrayref of categories)
+                 category                     (optional arrayref of categories/coordinate systems)
 
 
   For a complete list of capabilities and categories, see:
 
-    http://das.sanger.ac.uk/registry/
+    http://www.dasregistry.org/
 
   The category can optionally be a full coordinate system name,
   allowing further restriction by authority, version and species.
@@ -1605,14 +1605,28 @@ Bio::Das::Lite - Perl extension for the DAS (HTTP+XML) Protocol (http://biodas.o
 
 =head2 registry_sources : Arrayref of dassource objects from the configured registry services
 
+  # Get all sources
   my $sources_ref = $biodaslite->registry_sources();
 
+  # Get sources with features or stylesheet capability
   my $sources_ref = $biodaslite->registry_sources({
     'capability' => ['features','stylesheet'],
   });
 
+  # Get sources based on Protein Sequence coordinate systems
   my $sources_ref = $biodaslite->registry_sources({
     'category' => ['Protein Sequence'],
+  });
+
+  # Get sources based on the UniProt coordinate system
+  my $sources_ref = $biodaslite->registry_sources({
+    'category' => ['UniProt,Protein Sequence'],
+  });
+
+  # Get sources offering features for the UniProt coordinate system
+  my $sources_ref = $biodaslite->registry_sources({
+    'capability' => ['features'],
+    'category'   => ['UniProt,Protein Sequence'],
   });
 
 =head2 build_queries
