@@ -1,4 +1,3 @@
-build.tap
 Changes
 eg/comparison
 eg/empty_segment
@@ -8,7 +7,6 @@ eg/stylesheet_test
 eg/uniprot-test
 lib/Bio/Das/Lite.pm
 MANIFEST
-MANIFEST.SKIP
 README
 t/00-critic.t
 t/00-distribution.t
@@ -22,6 +20,7 @@ t/07-singledsn-multiseg.t
 t/10-multidsn.t
 t/20-authentication.t
 t/21-proxy.t
+t/30-queries.t
 t/40-dna.t
 t/45-sequence.t
 t/50-entry_points.t
@@ -51,4 +50,3 @@ t/FileStubCompat.pm
 t/FileStub.pm
 Makefile
 Build.PL
-META.yml

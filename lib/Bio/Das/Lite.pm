@@ -268,7 +268,7 @@ our $ATTR     = {
 # $OPTS contains information about parameters to use for queries
 #
 our $OPTS = {
-	     'feature'      => [qw(segment type category categorize feature_id maxbins)],
+	     'feature'      => [qw(segment type category categorize feature_id group_id maxbins)],
 	     'type'         => [qw(segment)],
 	     'sequence'     => [qw(segment)],
 	     'dna'          => [qw(segment)],
@@ -570,7 +570,7 @@ sub build_queries {
       #########
       # If the query param was a hashref, stitch the parts together
       #
-      push @queries, join q(;), map { "$_=$query->{$_}" } grep { $query->{$_} } @{$OPTS->{$fname}};
+      push @queries, $self->_hash_to_query($query, $fname);
 
     } elsif(ref $query eq 'ARRAY') {
       #########
@@ -586,13 +586,10 @@ sub build_queries {
       }
 
       if(ref $query->[0] eq 'HASH') {
-	#########
-	# ... or if the first array arg is a hash, stitch the series of queries together
-	#
-	push @queries, map { ## no critic (ProhibitComplexMappings)
-	  my $q = $_;
-	  join q(;), map { "$_=$q->{$_}" } grep { $q->{$_} } @{$OPTS->{$fname}};
-	} @{$query};
+  #########
+  # Means we have been given a paramaters hash & need to decode this into a query
+  #
+  push @queries, map { $self->_hash_to_query($_, $fname) } @{$query};
 
       } else {
 	#########
@@ -616,6 +613,16 @@ sub build_queries {
   }
   return \@queries;
 }
+
+sub _hash_to_query {
+  my ($self, $query, $fname) = @_;
+  ## no critic (ProhibitComplexMappings)
+  return join q(;),
+    map { "$_->[0]=$_->[1]" }
+    map { my $q = $_; ref($query->{$q}) eq 'ARRAY' ? map{ [$q, $_] } (@{$query->{$q}}) : [$q, $query->{$q}] }
+    grep { $query->{$_} }
+    @{$Bio::Das::Lite::OPTS->{$fname}};
+};
 
 sub _hack_fname {
   my ($self, $fname) = @_;
@@ -1520,7 +1527,7 @@ Bio::Das::Lite - Perl extension for the DAS (HTTP+XML) Protocol (http://biodas.o
   my $feature_data4 = $das->features([
                                       {'segment'  => '1:1,1000000','type' => 'karyotype',},
                                       {'segment'  => '2:1,1000000',},
-                                      {'group_id' => 'OTTHUMG00000036084',},
+                                      {'feature_id' => 'OTTHUMG00000036084',},
                                      ]);
 
   #########
@@ -1541,7 +1548,7 @@ Bio::Das::Lite - Perl extension for the DAS (HTTP+XML) Protocol (http://biodas.o
   $das->features(['1:1,1000000', '2:1,1000000', '3:1,1000000'], $callback);
 
   # or:
-  $das->features([{'group_id' => 'OTTHUMG00000036084'}, '2:1,1000000', '3:1,1000000'], $callback);
+  $das->features([{'feature_id' => 'OTTHUMG00000036084'}, '2:1,1000000', '3:1,1000000'], $callback);
 
 =head2 alignment : Retrieve protein alignment data for a query.  This can be a multiple sequence alignment
                     or pairwise alignment.  Note - this has not been tested for structural alignments as there
