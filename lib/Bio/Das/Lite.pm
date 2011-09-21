@@ -1227,13 +1227,17 @@ sub _fetch_registry_sources_sourcegroup {
 		  coordinateSystem => [],
 		  description      => $sourcegroup->{source_description},
 		  id               => $source->{version_uri},
+		  title            => $sourcegroup->{source_title},
 		 };
 
     #########
-    # Some sources have 'more info' URLs
+    # Some sources have 'more info' URLs and/or properties
     #
     if ( my $doc_href = $sourcegroup->{source_doc_href} ) {
       $object->{helperurl} = $doc_href;
+    }
+    if ( my $prop = $source->{prop} ) {
+      $object->{prop} = $prop;
     }
 
     #########
